@@ -14,7 +14,7 @@
     <div class="barra nav">
         <button onclick="skipTo(-10)"><</button>
         <button onclick="skipTo(-1)"><<</button>
-        <div class="fracao"><span class="page"></span>/<span class="total"></span></div>
+        <div class="fracao"><input type="number" class="page" onchange="skipTo(this.value, true)" />/<span class="total"></span></div>
         <button onclick="skipTo(+1)">>></button>
         <button onclick="skipTo(+10)">></button>
     </div>

@@ -5,11 +5,11 @@ const handleLoading = (loading) => {
 
 const getNumber = (item) => Number(localStorage.getItem(item));
 
-const skipTo = (direction) => {
+const skipTo = (goTo, specific) => {
     const page = getNumber('page');
     const primeiraPagina = 1;
     const ultimaPagina = getNumber('total_page');
-    let newPage = page + direction;
+    let newPage = specific ? goTo : page + goTo;
 
     if (newPage >= ultimaPagina) newPage = ultimaPagina;
     if (newPage <= primeiraPagina) newPage = primeiraPagina;
@@ -57,7 +57,7 @@ const getContent = (page) => {
 
         hideButtons(page == 1, [first, second]);
         hideButtons(page == total_page, [third, fourth]);
-        fracao.querySelector('.page').textContent = page;
+        fracao.querySelector('.page').value = page;
         fracao.querySelector('.total').textContent = total_page;
     })
     .catch(console.log);

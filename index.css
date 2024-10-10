@@ -35,9 +35,16 @@ body {
     opacity: .5;
 }
 .fracao {
+    display: flex;
+    justify-content: center;
     background-color: var(--primary-contrast);;
     padding: 10px;
     width: 100px;
     border: 1px solid var(--primary);
     border-radius: 3px;
+}
+.fracao .page {
+    display: inline;
+    width: 50%;
+    border: unset;
 }
