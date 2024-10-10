@@ -1,3 +1,4 @@
+localStorage.clear();
 const handleLoading = (loading) => {
     if (loading) document.querySelector('.loading').classList.remove('hide');
     else document.querySelector('.loading').classList.add('hide');
@@ -62,6 +63,64 @@ const getContent = (page) => {
     })
     .catch(console.log);
 }
+
+const startToDraw = (target) => {
+    const { firstChild }  = target;
+    const estavaAtivo = target.classList.contains("active");
+    firstChild.textContent = estavaAtivo ? "Ativar" : "Desativar";
+    localStorage.setItem('modo_de_desenho_ativo', estavaAtivo ? 0 : 1);
+    target.classList.toggle("active");
+}
+
+const applyHachura = (pos, altura) => {
+    const hachura = document.querySelector('.hachura');
+    const posicaoInicial = getNumber(['posicao_inicial', altura ? 'y' : 'x' ].join('_'));
+    const tamanho = (posicaoInicial - pos) * -1;
+
+    if (!(tamanho <= 0)) {
+        if (altura) hachura.style.height = tamanho + 'px';
+        else hachura.style.width = tamanho + 'px';
+        return;
+    }
+
+    const tamanhoInvertido = tamanho * -1; 
+    const novaPosicao = posicaoInicial - tamanhoInvertido;
+    const novoTamanho = posicaoInicial - novaPosicao;
+
+    if (altura) {
+        hachura.style.top = novaPosicao + 'px';
+        hachura.style.height = novoTamanho + 'px';
+    } else {
+        hachura.style.left = novaPosicao + 'px';
+        hachura.style.width = novoTamanho + 'px';
+    }
+}
+
+document.addEventListener('mousedown', e => {
+    if (!getNumber('modo_de_desenho_ativo')) return;
+    const element = document.createElement('DIV');
+    element.classList.add('hachura');
+    element.style.left = e.pageX + "px";
+    element.style.top = e.pageY + "px";
+
+    document.body.append(element);
+    localStorage.setItem('posicao_inicial_x', e.pageX);
+    localStorage.setItem('posicao_inicial_y', e.pageY);
+    localStorage.setItem('desenhando', 1);
+});
+
+document.addEventListener('mouseup', e => {
+    if (!getNumber('modo_de_desenho_ativo')) return;
+    if (!getNumber('desenhando')) return;
+    localStorage.setItem('desenhando', 0);
+});
+
+document.addEventListener('mousemove', e => {
+    if (!getNumber('modo_de_desenho_ativo')) return;
+    if (!getNumber('desenhando')) return;
+    applyHachura(e.pageX);
+    applyHachura(e.pageY, true);
+});
 
 let total_page = getNumber('total_page');
 let page = getNumber('page');

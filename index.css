@@ -1,5 +1,5 @@
 :root {
-    --primary: #3995d4;
+    --primary: hwb(204 22% 17%);
     --primary-contrast: #fff;
     --secondary: #2d3e50;
 }
@@ -10,8 +10,17 @@ body {
     visibility: hidden;
 }
 .barra {
+    text-align: center;
     padding: 10px;
     background-color: var(--secondary);
+}
+img {
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 .nav {
     display: flex;
@@ -20,19 +29,23 @@ body {
     position: sticky;
     bottom: 0;
 }
-.nav button {
+button {
+    padding: 10px;
     color: var(--primary-contrast);
     border-radius: 3px;
-    width: 50px;
+    min-width: 50px;
     background-color: var(--primary);
     border: 1px solid var(--primary);
     cursor: pointer;
 }
-.nav button:hover {
+button:hover {
     opacity: .9;
 }
-.nav button:active {
+button:active {
     opacity: .5;
+}
+button.active {
+    background-color: red;
 }
 .fracao {
     display: flex;
@@ -47,4 +60,9 @@ body {
     display: inline;
     width: 50%;
     border: unset;
+}
+.hachura {
+    border: 2px solid red;
+    background-color: rgba(57, 149, 212, .6);
+    position: absolute;
 }
