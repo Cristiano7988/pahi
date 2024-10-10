@@ -5,16 +5,16 @@ const handleLoading = (loading) => {
 
 const getNumber = (item) => Number(localStorage.getItem(item));
 
-const skipTo = (direction, edge) => {
-    let newPage;
+const skipTo = (direction) => {
     const page = getNumber('page');
     const primeiraPagina = 1;
     const ultimaPagina = getNumber('total_page');
+    let newPage = page + direction;
 
-    if (edge) newPage = direction > 0 ? ultimaPagina : primeiraPagina;
-    else newPage = page + direction;
+    if (newPage >= ultimaPagina) newPage = ultimaPagina;
+    if (newPage <= primeiraPagina) newPage = primeiraPagina;
 
-    localStorage.setItem('page', newPage);
+    localStorage.setItem('page', newPage );
     getContent(newPage);
 }
 
