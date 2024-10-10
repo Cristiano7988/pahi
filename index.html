@@ -4,70 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projeto Para Aplicar Hachura em Imagens</title>
-    <style>
-        body {
-            margin: 0;
-        }
-        .loading.carregou {
-            display: none;
-        }
-        .barra {
-            text-align: center;
-            padding: 10px;
-            background-color: #2d3e50;
-        }
-        .barra div {
-            display: inline-flex;
-        }
-    </style>
+    <link rel="stylesheet" href="index.css" />
 </head>
 <body>
     <div class="barra">
     </div>
     <img />
-    <div class="loading carregou">Carregando</div>
-    <div class="barra">
+    <div class="loading hide">Carregando</div>
+    <div class="barra nav">
+        <button onclick="skipTo(-1)"><</button>
+        <button onclick="skipTo(-1, true)"><<</button>
+        <div class="fracao"><span class="page"></span>/<span class="total"></span></div>
+        <button onclick="skipTo(+1, true)">>></button>
+        <button onclick="skipTo(+1)">></button>
     </div>
-    <script>
-        const getContent = (page) => {
-            document.querySelector('.loading').classList.remove('carregou'); 
-
-            const formData = new FormData();
-            formData.append('page', page);
-
-            fetch("https://api-hachuraservi1.websiteseguro.com/api/document", {
-                method: "post",
-                body: formData,
-                headers: {  
-                    "Authorization": "Basic 96f9c92582aed580ba10a780e8af7fea57531c9c",
-                } 
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Não foi possível realizar a requisição');
-
-                const infoLiberadaPeloBE = 1493;
-                const total_page = response.headers.get('total_page') ?? infoLiberadaPeloBE;
-                localStorage.setItem('total_page', total_page);
-
-                return response.json();
-            })
-            .then(response => {
-                document.querySelector('.loading').classList.add('carregou');
-                const element = document.querySelector('img');
-                element.src = response.image
-            })
-            .catch(console.log);
-        }
-
-        let total_page = localStorage.getItem('total_page');
-        let page = localStorage.getItem('page');
-
-        if (!page) {
-            page = 1;
-            localStorage.setItem('page', page);
-        }
-
-        getContent(page);
-    </script>
+    <script src="index.js"></script>
 </body>
 </html>

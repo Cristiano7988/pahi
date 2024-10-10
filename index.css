@@ -1,0 +1,43 @@
+:root {
+    --primary: #3995d4;
+    --primary-contrast: #fff;
+    --secondary: #2d3e50;
+}
+body {
+    margin: 0;
+}
+.hide {
+    visibility: hidden;
+}
+.barra {
+    padding: 10px;
+    background-color: var(--secondary);
+}
+.nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    position: sticky;
+    bottom: 0;
+}
+.nav button {
+    color: var(--primary-contrast);
+    border-radius: 3px;
+    width: 50px;
+    background-color: var(--primary);
+    border: 1px solid var(--primary);
+    cursor: pointer;
+}
+.nav button:hover {
+    opacity: .9;
+}
+.nav button:active {
+    opacity: .5;
+}
+.fracao {
+    background-color: var(--primary-contrast);;
+    padding: 10px;
+    width: 100px;
+    border: 1px solid var(--primary);
+    border-radius: 3px;
+}
