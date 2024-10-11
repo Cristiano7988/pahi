@@ -15,6 +15,7 @@ class HachuraClass {
 
         if (request?.id) [hachuras] = hachuras.filter(hachura => request.id == hachura.id);
         if (request?.page_id) hachuras = hachuras.filter(hachura => hachura.page_id == request.page_id);
+        if (request?.except_id) hachuras = hachuras.filter(hachura => hachura.id != request.except_id);
 
         return hachuras;
     }
@@ -22,7 +23,7 @@ class HachuraClass {
     create = (request) => {
         this.data = {
             ...request,
-            id: ++this.get().length
+            id: new Date().getTime()
         };
 
         const hachuras = JSON.parse(localStorage.getItem('hachuras'));
@@ -41,6 +42,10 @@ class HachuraClass {
         element.style.top = hachura.y + "px";
         element.style.width = hachura.largura + "px";
         element.style.height = hachura.altura + "px";
+        element.onclick = () => {
+            this.destroy(hachura.id);
+            this.destroyElement(hachura.id);
+        }
     
         document.body.append(element);
     }
@@ -94,4 +99,11 @@ class HachuraClass {
         const hachuras = document.querySelectorAll('.hachura');
         Array.from(hachuras).map(hachura => hachura.remove());
     }
+
+    destroy = (id) => {
+        const hachuras = this.get({ except_id: id });
+        localStorage.setItem('hachuras', JSON.stringify(hachuras));
+    }
+
+    destroyElement = (id) => document.querySelector(`[data-id="${id}"]`).remove();
 }
