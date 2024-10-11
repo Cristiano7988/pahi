@@ -1,4 +1,7 @@
+const Hachura = new HachuraClass();
+
 localStorage.removeItem('modo_de_desenho_ativo');
+
 const handleLoading = (loading) => {
     if (loading) document.querySelector('.loading').classList.remove('hide');
     else document.querySelector('.loading').classList.add('hide');
@@ -7,8 +10,7 @@ const handleLoading = (loading) => {
 const getNumber = (item) => Number(localStorage.getItem(item));
 
 const skipTo = (goTo, specific) => {
-    const hachuras = document.querySelectorAll('.hachura');
-    Array.from(hachuras).map(hachura => hachura.remove());
+    Hachura.clearElements();
     const page = getNumber('page');
     const primeiraPagina = 1;
     const ultimaPagina = getNumber('total_page');
@@ -25,43 +27,6 @@ const hideButtons = (condition, elements) => elements
     .map(element => condition
         ? element.classList.add('hide')
         : element.classList.remove('hide'));
-
-const getHachuras = (page_id) => {
-    let hachuras = JSON.parse(localStorage.getItem('hachuras'));
-    hachuras = hachuras.filter(hachura => hachura.page_id == page_id);
-
-    if (hachuras.length) {
-        hachuras.map(hachura => {
-            const element = document.createElement('DIV');
-            element.classList.add('hachura');
-            element.dataset.id = hachura.id;
-            element.style.left = hachura.x + "px";
-            element.style.top = hachura.y + "px";
-            element.style.width = hachura.largura + 'px';
-            element.style.height = hachura.altura + 'px';
-        
-            document.body.append(element);
-        });
-    }
-}
-
-const createHachura = (request) => {
-    const { id, x, y } = request;
-    const element = document.createElement('DIV');
-    element.classList.add('hachura');
-    element.dataset.id = id;
-    element.style.left = x + "px";
-    element.style.top = y + "px";
-
-    document.body.append(element);
-
-    const hachuras = JSON.parse(localStorage.getItem('hachuras'));
-
-    hachuras.push(request);
-
-    localStorage.setItem('hachuras', JSON.stringify(hachuras));
-    return request;
-}
 
 const getContent = (page) => {
     handleLoading(true)
@@ -99,7 +64,9 @@ const getContent = (page) => {
         hideButtons(page_id == total_page, [third, fourth]);
         fracao.querySelector('.page').value = page_id;
         fracao.querySelector('.total').textContent = total_page;
-        getHachuras(page_id);
+        
+        const hachuras = Hachura.get({ page_id });
+        hachuras.map(hachura => Hachura.createElement(hachura));
     })
     .catch(console.log);
 }
@@ -112,66 +79,40 @@ const startToDraw = (target) => {
     target.classList.toggle("active");
 }
 
-const applyHachura = (pos, altura) => {
-    let hachuras = JSON.parse(localStorage.getItem('hachuras'));
-    const currentHachura = hachuras?.filter(hachura => hachura.id == getNumber('desenhando'))[0] ?? [];
-    const hachura = document.querySelector(`.hachura[data-id="${currentHachura.id}"]`);
-
-    const posicaoInicial = getNumber(altura ? 'y' : 'x');
-    const tamanho = (posicaoInicial - pos) * -1;
-
-    if (!(tamanho <= 0)) {
-        if (altura) {
-            hachura.style.height = tamanho + 'px';
-            currentHachura.altura = tamanho;
-        }
-        else {
-            hachura.style.width = tamanho + 'px';
-            currentHachura.largura = tamanho;
-        }
-        localStorage.setItem('hachuras', JSON.stringify(hachuras));
-        return;
+const drawHachura = (pos, atualizaAltura) => {
+    const payload = {
+        hachura_id: getNumber('hachura_id'),
+        atualizaAltura,
+        pos
     }
 
-    const tamanhoInvertido = tamanho * -1; 
-    const novaPosicao = posicaoInicial - tamanhoInvertido;
-    const novoTamanho = posicaoInicial - novaPosicao;
-
-    if (altura) {
-        hachura.style.top = novaPosicao + 'px';
-        hachura.style.height = novoTamanho + 'px';
-        currentHachura.y = novaPosicao;
-        currentHachura.altura = novoTamanho;
-    } else {
-        hachura.style.left = novaPosicao + 'px';
-        hachura.style.width = novoTamanho + 'px';
-        currentHachura.x = novaPosicao;
-        currentHachura.largura = novoTamanho;
-    }
-    hachuras = hachuras.map(hachura => hachura.id == currentHachura.id ? currentHachura : hachura);
-    localStorage.setItem('hachuras', JSON.stringify(hachuras)); 
+    const hachura = Hachura.updateElement(payload);
+    Hachura.update(hachura);
 }
 
 document.querySelector('.container-img').addEventListener('mousedown', e => {
     if (!getNumber('modo_de_desenho_ativo')) return;
-    const payload = { id: new Date().getTime(), x: e.pageX, y: e.pageY, largura: 0, altura: 0, page_id: getNumber('page') };
-    const hachura = createHachura(payload);
+    const payload = { x: e.pageX, y: e.pageY, largura: 0, altura: 0, page_id: getNumber('page') };
+
+    const hachura = Hachura.create(payload);
+    Hachura.createElement(hachura);
+
     localStorage.setItem('x', e.pageX);
     localStorage.setItem('y', e.pageY);
-    localStorage.setItem('desenhando', hachura.id);
+    localStorage.setItem('hachura_id', hachura.id);
 });
 
 document.addEventListener('mouseup', e => {
     if (!getNumber('modo_de_desenho_ativo')) return;
-    if (!getNumber('desenhando')) return;
-    localStorage.setItem('desenhando', 0);
+    if (!getNumber('hachura_id')) return;
+    localStorage.setItem('hachura_id', 0);
 });
 
 document.querySelector('img').addEventListener('mousemove', e => {
     if (!getNumber('modo_de_desenho_ativo')) return;
-    if (!getNumber('desenhando')) return;
-    applyHachura(e.pageX);
-    applyHachura(e.pageY, true);
+    if (!getNumber('hachura_id')) return;
+    drawHachura(e.pageX);
+    drawHachura(e.pageY, true);
 });
 
 if (!localStorage.getItem('hachuras')) localStorage.setItem('hachuras', JSON.stringify([])); 
@@ -179,7 +120,8 @@ if (!localStorage.getItem('hachuras')) localStorage.setItem('hachuras', JSON.str
 let total_page = getNumber('total_page');
 let page_id = getNumber('page');
 
-getHachuras(page_id);
+hachuras = Hachura.get({ page_id });
+hachuras.map(hachura => Hachura.createElement(hachura));
 
 if (!page_id) {
     page_id = 1;
