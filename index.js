@@ -7,6 +7,8 @@ const handleLoading = (loading) => {
 const getNumber = (item) => Number(localStorage.getItem(item));
 
 const skipTo = (goTo, specific) => {
+    const hachuras = document.querySelectorAll('.hachura');
+    Array.from(hachuras).map(hachura => hachura.remove());
     const page = getNumber('page');
     const primeiraPagina = 1;
     const ultimaPagina = getNumber('total_page');
@@ -23,6 +25,43 @@ const hideButtons = (condition, elements) => elements
     .map(element => condition
         ? element.classList.add('hide')
         : element.classList.remove('hide'));
+
+const getHachuras = (page_id) => {
+    let hachuras = JSON.parse(localStorage.getItem('hachuras'));
+    hachuras = hachuras.filter(hachura => hachura.page_id == page_id);
+
+    if (hachuras.length) {
+        hachuras.map(hachura => {
+            const element = document.createElement('DIV');
+            element.classList.add('hachura');
+            element.dataset.id = hachura.id;
+            element.style.left = hachura.x + "px";
+            element.style.top = hachura.y + "px";
+            element.style.width = hachura.largura + 'px';
+            element.style.height = hachura.altura + 'px';
+        
+            document.body.append(element);
+        });
+    }
+}
+
+const createHachura = (request) => {
+    const { id, x, y } = request;
+    const element = document.createElement('DIV');
+    element.classList.add('hachura');
+    element.dataset.id = id;
+    element.style.left = x + "px";
+    element.style.top = y + "px";
+
+    document.body.append(element);
+
+    const hachuras = JSON.parse(localStorage.getItem('hachuras'));
+
+    hachuras.push(request);
+
+    localStorage.setItem('hachuras', JSON.stringify(hachuras));
+    return request;
+}
 
 const getContent = (page) => {
     handleLoading(true)
@@ -53,13 +92,14 @@ const getContent = (page) => {
         element.src = response.image;
 
         const [first, second, fracao, third, fourth] = document.querySelector('.nav').children
-        const page = getNumber('page');
+        const page_id = getNumber('page');
         const total_page = getNumber('total_page');
 
-        hideButtons(page == 1, [first, second]);
-        hideButtons(page == total_page, [third, fourth]);
-        fracao.querySelector('.page').value = page;
+        hideButtons(page_id == 1, [first, second]);
+        hideButtons(page_id == total_page, [third, fourth]);
+        fracao.querySelector('.page').value = page_id;
         fracao.querySelector('.total').textContent = total_page;
+        getHachuras(page_id);
     })
     .catch(console.log);
 }
@@ -112,32 +152,13 @@ const applyHachura = (pos, altura) => {
     localStorage.setItem('hachuras', JSON.stringify(hachuras)); 
 }
 
-document.querySelector('img').addEventListener('mousedown', e => {
+document.querySelector('.container-img').addEventListener('mousedown', e => {
     if (!getNumber('modo_de_desenho_ativo')) return;
-    const element = document.createElement('DIV');
-    element.classList.add('hachura');
-    const id = new Date().getTime();
-    element.dataset.id = id;
-    element.style.left = e.pageX + "px";
-    element.style.top = e.pageY + "px";
-
-    document.body.append(element);
-
-    const hachuras = JSON.parse(localStorage.getItem('hachuras')) ?? [];
-
-    hachuras.push({
-        id,
-        x: e.pageX,
-        y: e.pageY,
-        largura: 0,
-        altura: 0,
-        page_id: getNumber('page')
-    });
-
+    const payload = { id: new Date().getTime(), x: e.pageX, y: e.pageY, largura: 0, altura: 0, page_id: getNumber('page') };
+    const hachura = createHachura(payload);
     localStorage.setItem('x', e.pageX);
     localStorage.setItem('y', e.pageY);
-    localStorage.setItem('hachuras', JSON.stringify(hachuras));
-    localStorage.setItem('desenhando', id);
+    localStorage.setItem('desenhando', hachura.id);
 });
 
 document.addEventListener('mouseup', e => {
@@ -153,27 +174,16 @@ document.querySelector('img').addEventListener('mousemove', e => {
     applyHachura(e.pageY, true);
 });
 
+if (!localStorage.getItem('hachuras')) localStorage.setItem('hachuras', JSON.stringify([])); 
+
 let total_page = getNumber('total_page');
-let page = getNumber('page');
-const hachuras = JSON.parse(localStorage.getItem('hachuras'));
+let page_id = getNumber('page');
 
-if (hachuras?.length) {
-    hachuras.map(hachura => {
-        const element = document.createElement('DIV');
-        element.classList.add('hachura');
-        element.dataset.id = hachura.id;
-        element.style.left = hachura.x + "px";
-        element.style.top = hachura.y + "px";
-        element.style.width = hachura.largura + 'px';
-        element.style.height = hachura.altura + 'px';
-    
-        document.body.append(element);
-    });
+getHachuras(page_id);
+
+if (!page_id) {
+    page_id = 1;
+    localStorage.setItem('page', page_id);
 }
 
-if (!page) {
-    page = 1;
-    localStorage.setItem('page', page);
-}
-
-getContent(page);
+getContent(page_id);
