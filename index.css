@@ -28,6 +28,7 @@ img {
     gap: 10px;
     position: sticky;
     bottom: 0;
+    z-index: 1;
 }
 button {
     padding: 10px;

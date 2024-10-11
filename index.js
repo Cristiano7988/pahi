@@ -1,4 +1,4 @@
-localStorage.clear();
+localStorage.removeItem('modo_de_desenho_ativo');
 const handleLoading = (loading) => {
     if (loading) document.querySelector('.loading').classList.remove('hide');
     else document.querySelector('.loading').classList.add('hide');
@@ -73,13 +73,23 @@ const startToDraw = (target) => {
 }
 
 const applyHachura = (pos, altura) => {
-    const hachura = document.querySelector('.hachura');
-    const posicaoInicial = getNumber(['posicao_inicial', altura ? 'y' : 'x' ].join('_'));
+    let hachuras = JSON.parse(localStorage.getItem('hachuras'));
+    const currentHachura = hachuras?.filter(hachura => hachura.id == getNumber('desenhando'))[0] ?? [];
+    const hachura = document.querySelector(`.hachura[data-id="${currentHachura.id}"]`);
+
+    const posicaoInicial = getNumber(altura ? 'y' : 'x');
     const tamanho = (posicaoInicial - pos) * -1;
 
     if (!(tamanho <= 0)) {
-        if (altura) hachura.style.height = tamanho + 'px';
-        else hachura.style.width = tamanho + 'px';
+        if (altura) {
+            hachura.style.height = tamanho + 'px';
+            currentHachura.altura = tamanho;
+        }
+        else {
+            hachura.style.width = tamanho + 'px';
+            currentHachura.largura = tamanho;
+        }
+        localStorage.setItem('hachuras', JSON.stringify(hachuras));
         return;
     }
 
@@ -90,23 +100,44 @@ const applyHachura = (pos, altura) => {
     if (altura) {
         hachura.style.top = novaPosicao + 'px';
         hachura.style.height = novoTamanho + 'px';
+        currentHachura.y = novaPosicao;
+        currentHachura.altura = novoTamanho;
     } else {
         hachura.style.left = novaPosicao + 'px';
         hachura.style.width = novoTamanho + 'px';
+        currentHachura.x = novaPosicao;
+        currentHachura.largura = novoTamanho;
     }
+    hachuras = hachuras.map(hachura => hachura.id == currentHachura.id ? currentHachura : hachura);
+    localStorage.setItem('hachuras', JSON.stringify(hachuras)); 
 }
 
-document.addEventListener('mousedown', e => {
+document.querySelector('img').addEventListener('mousedown', e => {
     if (!getNumber('modo_de_desenho_ativo')) return;
     const element = document.createElement('DIV');
     element.classList.add('hachura');
+    const id = new Date().getTime();
+    element.dataset.id = id;
     element.style.left = e.pageX + "px";
     element.style.top = e.pageY + "px";
 
     document.body.append(element);
-    localStorage.setItem('posicao_inicial_x', e.pageX);
-    localStorage.setItem('posicao_inicial_y', e.pageY);
-    localStorage.setItem('desenhando', 1);
+
+    const hachuras = JSON.parse(localStorage.getItem('hachuras')) ?? [];
+
+    hachuras.push({
+        id,
+        x: e.pageX,
+        y: e.pageY,
+        largura: 0,
+        altura: 0,
+        page_id: getNumber('page')
+    });
+
+    localStorage.setItem('x', e.pageX);
+    localStorage.setItem('y', e.pageY);
+    localStorage.setItem('hachuras', JSON.stringify(hachuras));
+    localStorage.setItem('desenhando', id);
 });
 
 document.addEventListener('mouseup', e => {
@@ -115,7 +146,7 @@ document.addEventListener('mouseup', e => {
     localStorage.setItem('desenhando', 0);
 });
 
-document.addEventListener('mousemove', e => {
+document.querySelector('img').addEventListener('mousemove', e => {
     if (!getNumber('modo_de_desenho_ativo')) return;
     if (!getNumber('desenhando')) return;
     applyHachura(e.pageX);
@@ -124,6 +155,21 @@ document.addEventListener('mousemove', e => {
 
 let total_page = getNumber('total_page');
 let page = getNumber('page');
+const hachuras = JSON.parse(localStorage.getItem('hachuras'));
+
+if (hachuras?.length) {
+    hachuras.map(hachura => {
+        const element = document.createElement('DIV');
+        element.classList.add('hachura');
+        element.dataset.id = hachura.id;
+        element.style.left = hachura.x + "px";
+        element.style.top = hachura.y + "px";
+        element.style.width = hachura.largura + 'px';
+        element.style.height = hachura.altura + 'px';
+    
+        document.body.append(element);
+    });
+}
 
 if (!page) {
     page = 1;
